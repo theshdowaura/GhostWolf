@@ -1,40 +1,56 @@
+# Workflow 名称
 name: Build Ghostwolf
 
+# 触发工作流程的事件
 on:
+  # 当推送到 main 分支时触发
   push:
     branches: [ main ]
+  # 当有针对 main 分支的 Pull Request 时触发
   pull_request:
     branches: [ main ]
+  # 允许手动从 Actions 选项卡触发
   workflow_dispatch:
 
+# 定义工作流程中的作业
 jobs:
+  # 作业 ID（可以自定义）
   build-windows:
+    # 指定运行作业的 Runner 环境
     runs-on: windows-latest
+
+    # 作业包含的步骤
     steps:
+      # 第一步：签出代码
+      # 使用官方的 checkout action 获取仓库代码
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 第二步：设置 MSVC 开发人员命令提示符环境
+      # 这个 action 会配置必要的环境变量 (PATH, INCLUDE, LIB) 以便使用 MSBuild
       - name: Setup MSVC Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
-        # 你也可以选择使用官方的 setup-msbuild action，它会自动处理环境
-        # - name: Add msbuild to PATH
-        #   uses: microsoft/setup-msbuild@v1.1
+        # 注意：也可以考虑使用官方的 microsoft/setup-msbuild action
 
+      # 第三步：构建解决方案
+      # 使用 msbuild 命令编译 Ghostwolf.sln
       - name: Build the solution
-        # 移除行末的反斜杠 '\'
-        run: msbuild Ghostwolf.sln /p:Configuration=Release /p:Platform=x64 /p:OutDir=<span class="math-inline">\{\{ github\.workspace \}\}\\artifacts\\
-\# 或者使用多行格式提高可读性：
-\# run\: \>
-\#   msbuild Ghostwolf\.sln
-\#   /p\:Configuration\=Release
-\#   /p\:Platform\=x64
-\#   /p\:OutDir\=</span>{{ github.workspace }}\artifacts\
+        # 使用 YAML 的 > 多行字符串语法，更清晰，且无需行尾反斜杠
+        run: >
+          msbuild Ghostwolf.sln
+          /p:Configuration=Release
+          /p:Platform=x64
+          /p:OutDir=${{ github.workspace }}\artifacts\
 
+      # 第四步：上传构建产物
+      # 将构建生成的 Ghostwolf.exe 文件作为 artifact 上传
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
+          # 上传的 artifact 名称
           name: Ghostwolf-x64-Release
-          # 确认你的项目确实生成了 Ghostwolf.exe 到 artifacts 目录下
+          # 要上传的文件路径 (相对于 github.workspace)
+          # 确认 Release/x64 配置确实在 artifacts 目录下生成了 Ghostwolf.exe
           path: ${{ github.workspace }}\artifacts\Ghostwolf.exe
-          # 如果不确定确切路径或名称，通配符也可以：
+          # 如果不确定文件名或只有一个 exe，也可以用通配符:
           # path: ${{ github.workspace }}\artifacts\*.exe
