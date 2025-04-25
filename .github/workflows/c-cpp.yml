@@ -10,25 +10,31 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup MSVC Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
+        # 你也可以选择使用官方的 setup-msbuild action，它会自动处理环境
+        # - name: Add msbuild to PATH
+        #   uses: microsoft/setup-msbuild@v1.1
 
       - name: Build the solution
-        run: msbuild Ghostwolf.sln \
-              /p:Configuration=Release \
-              /p:Platform=x64 \
-              /p:OutDir=${{ github.workspace }}\artifacts\
+        # 移除行末的反斜杠 '\'
+        run: msbuild Ghostwolf.sln /p:Configuration=Release /p:Platform=x64 /p:OutDir=<span class="math-inline">\{\{ github\.workspace \}\}\\artifacts\\
+\# 或者使用多行格式提高可读性：
+\# run\: \>
+\#   msbuild Ghostwolf\.sln
+\#   /p\:Configuration\=Release
+\#   /p\:Platform\=x64
+\#   /p\:OutDir\=</span>{{ github.workspace }}\artifacts\
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: Ghostwolf-x64-Release
-          path: artifacts/Ghostwolf.exe
-          # 或者用通配符：
-          # path: |
-          #   **/Ghostwolf.exe
+          # 确认你的项目确实生成了 Ghostwolf.exe 到 artifacts 目录下
+          path: ${{ github.workspace }}\artifacts\Ghostwolf.exe
+          # 如果不确定确切路径或名称，通配符也可以：
+          # path: ${{ github.workspace }}\artifacts\*.exe
