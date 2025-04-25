@@ -1,37 +1,32 @@
-# 文件路径: .github/workflows/build.yml
-
 name: Build Ghostwolf
 
 on:
   push:
-    branches: [ main ] # 如果您的主分支名称不同，请调整
+    branches: [ main ]
   pull_request:
-    branches: [ main ] # 如果您的主分支名称不同，请调整
-  workflow_dispatch: # 允许从 Actions 选项卡手动触发
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-windows:
-    runs-on: windows-latest # 使用 GitHub 提供的最新 Windows 运行器
+    runs-on: windows-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4 # 检出您的仓库代码
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup MSBuild using Developer Command Prompt
-      uses: actions/setup-vsdevcmd@v1.2.0 # 设置环境，类似于 VS 开发人员命令提示符 (使用具体版本)
+      - name: Setup MSVC Developer Command Prompt
+        # 推荐使用 ilammy 的 Action
+        uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Build the solution
-      run: msbuild Ghostwolf.sln /p:Configuration=Release /p:Platform=x64 # 构建解决方案文件
-      # 说明:
-      # Ghostwolf.sln: 您的解决方案文件的路径（相对于仓库根目录）
-      # /p:Configuration=Release: 指定 Release 构建配置
-      # /p:Platform=x64: 指定 64 位平台（因为 main.cpp 禁用了 32 位）
+      # 或者，如果你更倾向 TheMrMilchmann 的实现，可替换为：
+      # uses: TheMrMilchmann/setup-msvc-dev@v3
 
-    - name: Upload build artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Ghostwolf-x64-Release # 构建产物 zip 文件的名称
-        path: Ghostwolf/x64/Release/Ghostwolf.exe # 编译后的可执行文件的路径
-        # 注意: 该路径取决于标准的 VS 输出目录。
-        # 通常是 ProjectDir/Platform/Configuration/ProjectName.exe
-        # 在这里，相对于仓库根目录是 Ghostwolf/x64/Release/Ghostwolf.exe
+      - name: Build the solution
+        run: msbuild Ghostwolf.sln /p:Configuration=Release /p:Platform=x64
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ghostwolf-x64-Release
+          path: Ghostwolf/x64/Release/Ghostwolf.exe
