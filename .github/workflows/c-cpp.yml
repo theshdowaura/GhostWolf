@@ -1,0 +1,35 @@
+name: Build Ghostwolf
+
+on:
+  push:
+    branches: [ main ] # Adjust if your main branch has a different name
+  pull_request:
+    branches: [ main ] # Adjust if your main branch has a different name
+  workflow_dispatch: # Allows manual triggering from the Actions tab
+
+jobs:
+  build-windows:
+    runs-on: windows-latest # Use the latest Windows runner provided by GitHub
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4 # Checks out your repository code
+
+    - name: Setup MSBuild using Developer Command Prompt
+      uses: actions/setup-vsdevcmd@v1 # Sets up the environment similar to VS Developer Command Prompt
+
+    - name: Build the solution
+      run: msbuild Ghostwolf.sln /p:Configuration=Release /p:Platform=x64 # Builds the solution file
+      # Notes:
+      # Ghostwolf.sln: Path to your solution file (relative to the repo root)
+      # /p:Configuration=Release: Specifies the Release build configuration
+      # /p:Platform=x64: Specifies the 64-bit platform (as main.cpp disables 32-bit)
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Ghostwolf-x64-Release # Name of the artifact zip file
+        path: Ghostwolf/x64/Release/Ghostwolf.exe # Path to the compiled executable
+        # Note: The path depends on standard VS output directories.
+        # It's usually ProjectDir/Platform/Configuration/ProjectName.exe
+        # In this case: Ghostwolf/x64/Release/Ghostwolf.exe relative to the repo root.
