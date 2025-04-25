@@ -16,17 +16,19 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup MSVC Developer Command Prompt
-        # 推荐使用 ilammy 的 Action
         uses: ilammy/msvc-dev-cmd@v1
 
-      # 或者，如果你更倾向 TheMrMilchmann 的实现，可替换为：
-      # uses: TheMrMilchmann/setup-msvc-dev@v3
-
       - name: Build the solution
-        run: msbuild Ghostwolf.sln /p:Configuration=Release /p:Platform=x64
+        run: msbuild Ghostwolf.sln \
+              /p:Configuration=Release \
+              /p:Platform=x64 \
+              /p:OutDir=${{ github.workspace }}\artifacts\
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: Ghostwolf-x64-Release
-          path: Ghostwolf/x64/Release/Ghostwolf.exe
+          path: artifacts/Ghostwolf.exe
+          # 或者用通配符：
+          # path: |
+          #   **/Ghostwolf.exe
